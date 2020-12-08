@@ -50,8 +50,8 @@ if __name__ == "__main__":
 
     imgArray = [f for f in os.listdir(folder) if not f.startswith('.')]
     random.shuffle(imgArray)
-    fourcc = cv2.VideoWriter_fourcc(*"MJPG")
-    videoWriter = cv2.VideoWriter("save.mp4v", fourcc, fps, resolution)
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    videoWriter = cv2.VideoWriter("save.mp4", fourcc, fps, resolution)
     back = np.zeros((height, width, 3), np.uint8)
 
     for i in range(len(imgArray)):
@@ -73,11 +73,10 @@ if __name__ == "__main__":
         for j in range(fpp - 1):
             ratio = (j + 1) / fpp
             front_blur = motionBlur(cropped, int(60 * (1 - ratio)))
-            front = shiftImage(front_blur, (ratio - 1) * height + shift, resolution) 
+            front = shiftImage(front_blur, (ratio - 1) * height + shift, resolution)
             print(str(int(ratio * 100)) + "%")
             drawFrame(videoWriter, addImage(back, front, height, ratio, shift))
         back = cropped
 
     drawFrame(videoWriter, back)
     videoWriter.release()
-    os.system("mv save.mp4v save.mp4")
