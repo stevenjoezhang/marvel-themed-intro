@@ -48,7 +48,7 @@ if __name__ == "__main__":
     resolution = (width, height)
     shift = height / (fpp + 1) / 2
 
-    imgArray = [f for f in os.listdir(folder) if not f.startswith('.')]
+    imgArray = os.listdir(folder)
     random.shuffle(imgArray)
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     videoWriter = cv2.VideoWriter("save.mp4", fourcc, fps, resolution)
@@ -56,6 +56,9 @@ if __name__ == "__main__":
 
     for i in range(len(imgArray)):
         temp = cv2.imread(os.path.join(folder, imgArray[i]))
+        if not isinstance(temp, np.ndarray):
+            print(imgArray[i])
+            continue
         h, w, _ = temp.shape
         if h / w > height / width:
             H = int(h * width / w) #fit width
