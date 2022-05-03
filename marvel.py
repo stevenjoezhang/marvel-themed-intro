@@ -16,7 +16,7 @@ def motionBlur(image, degree = 60, angle = 135):
     motion_blur_kernel = motion_blur_kernel / degree
     blurred = cv2.filter2D(image, -1, motion_blur_kernel)
 
-    # convert to uint8
+    # Convert to uint8
     cv2.normalize(blurred, blurred, 0, 255, cv2.NORM_MINMAX)
     return np.array(blurred, dtype = np.uint8)
 
@@ -36,9 +36,6 @@ def addImage(img1, img2, height, ratio, shift):
         dst[i] = img2[i] * alpha + img1[i] * beta
     return dst.astype(np.uint8)
 
-def drawFrame(videoWriter, img):
-    videoWriter.write(img)
-
 if __name__ == "__main__":
     folder = input("请输入图片所在文件夹") or "src"
     fps = int(input("请输入视频帧率") or 24)
@@ -50,36 +47,36 @@ if __name__ == "__main__":
 
     imgArray = os.listdir(folder)
     random.shuffle(imgArray)
-    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    fourcc = cv2.VideoWriter_fourcc(*"avc1")
     videoWriter = cv2.VideoWriter("save.mp4", fourcc, fps, resolution)
     back = np.zeros((height, width, 3), np.uint8)
 
-    for i in range(len(imgArray)):
-        temp = cv2.imread(os.path.join(folder, imgArray[i]))
+    for i, img in enumerate(imgArray):
+        temp = cv2.imread(os.path.join(folder, img))
         if not isinstance(temp, np.ndarray):
-            print(imgArray[i])
+            print("Failed to read:", img)
             continue
         h, w, _ = temp.shape
         if h / w > height / width:
-            H = int(h * width / w) #fit width
+            H = int(h * width / w) # Fit width
             resized = cv2.resize(temp, (width, H), interpolation = cv2.INTER_AREA)
             delta = int((H - height) / 2)
             cropped = resized[delta:delta + height, :]
         else:
-            W = int(w * height / h) #fit height
+            W = int(w * height / h) # Fit height
             resized = cv2.resize(temp, (W, height), interpolation = cv2.INTER_AREA)
             delta = int((W - width) / 2)
             cropped = resized[: , delta:delta + width]
 
-        print("Frame " + str(i) + " of " + str(len(imgArray)) + " start")
-        drawFrame(videoWriter, back)
+        print("Frame", i, "of", len(imgArray), "start")
+        videoWriter.write(back)
         for j in range(fpp - 1):
             ratio = (j + 1) / fpp
             front_blur = motionBlur(cropped, int(60 * (1 - ratio)))
             front = shiftImage(front_blur, (ratio - 1) * height + shift, resolution)
             print(str(int(ratio * 100)) + "%")
-            drawFrame(videoWriter, addImage(back, front, height, ratio, shift))
+            videoWriter.write(addImage(back, front, height, ratio, shift))
         back = cropped
 
-    drawFrame(videoWriter, back)
+    videoWriter.write(back)
     videoWriter.release()
